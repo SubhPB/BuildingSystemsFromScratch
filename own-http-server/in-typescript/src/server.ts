@@ -3,8 +3,9 @@
 import * as net from "net";
 import { HttpRequest } from "./types";
 import { createHttpResponse, parseHttpRequestHeaders } from "./utils";
+import { HttpResponse } from "./response";
 
-type callbackGetFunction = (req:HttpRequest) => string
+type callbackGetFunction = (req:HttpRequest, res: HttpResponse) => void
 
 export class Server {
     server: net.Server;
@@ -30,11 +31,12 @@ export class Server {
                             entry => request.path.match(entry.regex)
                         );
 
+                        const response = new HttpResponse(socket);
+
                         if (handlerEntry){
-                            let response = handlerEntry.fn(request);
-                            socket.write(response)
+                            handlerEntry.fn(request, response);
                         } else {
-                            socket.write(createHttpResponse(404))
+                            response.status(404, "Not Found").end(`(${request.path}). The given path does not exist`);
                         }
                     }
                 })
