@@ -18,6 +18,11 @@ export interface HttpRequest {
     method: Methods,
     path: string,
     httpVersion: "HTTP/1.1" | "HTTP/2",
+    header: HttpHeader
     host?: string,
     userAgent?: string,
+};
+
+export interface HttpHeader {
+    [key:string|number]: string | number
 }

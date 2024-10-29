@@ -1,6 +1,6 @@
 // Byimaan
 
-import { HttpRequest, Methods, valueOf } from "./types";
+import { HttpHeader, HttpRequest, Methods, valueOf } from "./types";
 
 const isString = (val:unknown) => typeof val === 'string'
 
@@ -22,13 +22,18 @@ export const parseHttpRequestHeaders = (data: string | Buffer): HttpRequest | nu
         const [method, path, httpVersion] = reqComponents[0].split(" ");
         
         // retrieve headers
-        const headerSection = reqComponents.slice(1, reqComponents.length - 1);
+        const headerSection = reqComponents.slice(1, reqComponents.length - 2);
+
+        const header: HttpHeader = Object.fromEntries(
+            Array.from(headerSection, (entry) => entry.split(": "))
+        )
 
         const [userAgentKey, userAgent] = headerSection[1].split(" ");
 
         let req : HttpRequest = {
             method: Methods[method as valueOf<typeof Methods>],
             path: path,
+            header,
             httpVersion: httpVersion as HttpRequest["httpVersion"],
             userAgent,
         }
@@ -44,8 +49,8 @@ export const spacer = (times:number=1) => {
 export const createHttpResponse = (
     statusCode:number,
     statusMessage: string = "",
-    contentType: string = "text/plain",
     body: string = "",
+    header: HttpHeader = {}
 ) => {
     /**
      * What are 3 main components of http response?
@@ -54,13 +59,45 @@ export const createHttpResponse = (
      * 3. Body (optional)
      */
 
-    const defaultHttpHeader = `HTTP/1.1 ${statusCode} ${statusMessage}${spacer()}`;
+    const  statusLine = `HTTP/1.1 ${statusCode} ${statusMessage}${spacer()}`;
 
-    const contentTypeMsg = `Content-Type: ${contentType}${spacer()}`,
-        contentLength = `Content-Length: ${body.length}${spacer(2)}`;
+    const headerInStringFormat = Array.from(
+        Object.entries(header), ([key, val]) => `${key}: ${val}`
+    ).join(spacer()) + spacer(2);
 
     // we're creating syntax like: 
     // HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 3\r\nabc\r\n\r\n
-    return `${defaultHttpHeader}${contentTypeMsg}${contentLength}${body}${spacer(2)}`
+    return `${statusLine}${headerInStringFormat}${body}${spacer(2)}`
 
+};
+
+export class Header {
+    private resHeader : HttpHeader = {};
+
+    get(key: string){
+        return this.resHeader[key]
+    };
+
+    setAll(args: (string | number)[][]){
+        for(let arg of args){
+            if (arg.length >= 2){
+                this.set(arg[0], arg[arg.length - 1])
+            };
+        };
+        return this
+    }
+
+    set(key: string | number, value: string | number){
+        this.resHeader[key] = value;
+        return this
+    }
+
+    create(){
+        return this.resHeader
+    }
+
+    get header(){
+        return this.create()
+    }
 }
+
