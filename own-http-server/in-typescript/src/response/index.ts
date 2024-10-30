@@ -5,6 +5,7 @@ import { HttpHeader, valueOf } from "../types";
 import { spacer } from "../utils";
 
 export class HttpResponse {
+    private _socket : net.Socket
     private header : HttpHeader = {};
     private body: string = '';
 
@@ -14,8 +15,8 @@ export class HttpResponse {
         version: "1.1"
     };
 
-    constructor (private socket:net.Socket){
-        this.socket = socket
+    constructor (socket:net.Socket){
+        this._socket = socket
     };
 
     private formatResponse = () => {
@@ -27,8 +28,12 @@ export class HttpResponse {
             entity => entity.join(": ")
         ).join(spacer()) + spacer(2);
 
-        const bodySection = this.body + spacer(2);
+        const bodySection = this.body && (this.body + spacer(2));
         return `${statusLine}${headerSection}${bodySection}`
+    };
+
+    createResponse(){
+        return this.formatResponse();
     }
 
     status(code:number, message: string, version="1.1"){
@@ -58,8 +63,11 @@ export class HttpResponse {
 
     end(body?:string){
         if (body) this.body = body;
-        this.socket.end(this.formatResponse())
+        this._socket.end(this.formatResponse())
     };
 
-    write = this.socket.write;
+    get socket(){
+        return this._socket
+    }
+
 }

@@ -2,7 +2,7 @@
 
 import * as net from "net";
 import { HttpRequest } from "./types";
-import { createHttpResponse, parseHttpRequestHeaders } from "./utils";
+import { parseHttpRequestHeaders } from "./utils";
 import { HttpResponse } from "./response";
 
 type callbackGetFunction = (req:HttpRequest, res: HttpResponse) => void
