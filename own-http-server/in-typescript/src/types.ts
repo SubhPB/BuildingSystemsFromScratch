@@ -19,6 +19,7 @@ export interface HttpRequest {
     path: string,
     httpVersion: "HTTP/1.1" | "HTTP/2",
     header: HttpHeader,
+    body ?: any
 };
 
 export interface HttpHeader {

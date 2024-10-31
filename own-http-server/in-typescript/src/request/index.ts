@@ -1,6 +1,6 @@
 // Byimaan
 
-import {  isString } from "../utils";
+import {  isString, spacer } from "../utils";
 import { Methods, HttpRequest, HttpHeader, valueOf } from "../types";
 
 export const parseHttpRequestHeaders = (data: string | Buffer): HttpRequest | null => {
@@ -14,17 +14,24 @@ export const parseHttpRequestHeaders = (data: string | Buffer): HttpRequest | nu
          * 3. Body (optional) 
          */
 
-        // splitting different parts of our request.
-        const reqComponents = data.split("\r\n");
+        // See we did ...reqBody because we do not skip data if user intentionally might have used CRLF symbols too many times in the request body
+        const [reqHead, ...reqBody] = data.split(spacer(2));
+
+        const [reqLine, ...headers] = reqHead.split(spacer())
 
         // extracting request-line
-        const [method, path, httpVersion] = reqComponents[0].split(" ");
+        const [method, path, httpVersion] = reqLine.split(" ");
         
-        // retrieve headers
-        const headerSection = reqComponents.slice(1, reqComponents.length - 2);
+        let body:any = undefined;
+
+        if (reqBody && reqBody?.length){
+            body = reqBody.join('')
+        }
 
         const header: HttpHeader = Object.fromEntries(
-            Array.from(headerSection, (entry) => entry.split(": "))
+            Array.from(headers, (entry) => (
+                entry.includes(': ') ? entry.split(": ") : []
+            ))
         );
 
         let req : HttpRequest = {
@@ -32,6 +39,7 @@ export const parseHttpRequestHeaders = (data: string | Buffer): HttpRequest | nu
             path: path,
             header,
             httpVersion: httpVersion as HttpRequest["httpVersion"],
+            body
         }
         return req;
     }
