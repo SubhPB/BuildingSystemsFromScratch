@@ -1,11 +1,11 @@
 // Byimaan
 
 import * as net from "net";
-import { HttpRequest } from "./types";
+import { HttpRequest, Methods } from "./types";
 import { parseHttpRequestHeaders } from "./request";
 import { HttpResponse } from "./response";
 
-type callbackGetFunction = (req:HttpRequest, res: HttpResponse) => void
+type callbackFunction = (req:HttpRequest, res: HttpResponse) => void
 
 export class Server {
     server: net.Server;
@@ -14,7 +14,7 @@ export class Server {
         [method: string] : {
             [path: string]: {
                 regex: RegExp,
-                fn: callbackGetFunction
+                fn: callbackFunction
             }
         }
     } = {};
@@ -52,12 +52,20 @@ export class Server {
         this.server.listen(port, hostname, listeningListener)
     };
 
-    public get(path: string, callbackFn: callbackGetFunction){
+    private registerRoute(method: keyof typeof Methods, path: string, callbackFn: callbackFunction){
         let regex = new RegExp("^" + path.replace("*", ".*") + "$");
 
-        if (!this.handlers["GET"]){
-            this.handlers["GET"] = {};
+        if (!this.handlers[method]){
+            this.handlers[method] = {};
         }
-        this.handlers["GET"][regex.source] = {regex, fn: callbackFn}
+        this.handlers[method][regex.source] = {regex, fn: callbackFn};
+    }
+
+    public get(path: string, callbackFn: callbackFunction){
+        this.registerRoute("GET", path, callbackFn)
+    }
+
+    public post(path: string, callbackFn: callbackFunction){
+        this.registerRoute("POST", path, callbackFn)
     }
 }

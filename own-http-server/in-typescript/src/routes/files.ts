@@ -13,7 +13,7 @@ import { HttpResponse } from "../response";
  * (*) Learn to send data in chunks using TCP in a http format to the client.
  */
 
-export const HandleFiles = async(req:HttpRequest, res:HttpResponse) => {
+export const HandleGetFiles = async(req:HttpRequest, res:HttpResponse) => {
     const fileName = req.path.split("/")[2];
     const FILE_DIRECTORY = "../src";
     

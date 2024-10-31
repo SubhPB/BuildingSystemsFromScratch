@@ -15,7 +15,7 @@ export enum Methods {
 };
 
 export interface HttpRequest {
-    method: Methods,
+    method: keyof typeof Methods,
     path: string,
     httpVersion: "HTTP/1.1" | "HTTP/2",
     header: HttpHeader,

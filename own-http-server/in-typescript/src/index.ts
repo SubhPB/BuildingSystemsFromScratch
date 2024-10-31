@@ -4,7 +4,7 @@ import fs from "fs";
 import { Server } from "./server";
 import path from "path";
 import { spacer } from "./utils";
-import { HandleFiles } from "./routes/files";
+import { HandleGetFiles } from "./routes/files";
 
 const PORT = parseInt(process.env.PORT || "4221"),
     HOST_NAME = process.env.HOST_NAME || "localhost"
@@ -16,7 +16,7 @@ server.get("/", ( _ , res) => {
 });
 
 // GOAL: Learn to send requested `/files/{fileName}` in a chunked manner to user using raw TCP into HTTP 
-server.get("/files*", HandleFiles)
+server.get("/files*", HandleGetFiles)
 
 console.log(`TCP server is running at PORT:${PORT} with HOSTNAME:${HOST_NAME}`);
 server.listen(PORT, HOST_NAME);
