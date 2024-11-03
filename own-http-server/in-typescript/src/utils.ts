@@ -1,7 +1,5 @@
 // Byimaan
 
-import { error } from 'console';
-
 export const isString = (val:unknown) => typeof val === 'string'
 
 export const spacer = (times:number=1) => {

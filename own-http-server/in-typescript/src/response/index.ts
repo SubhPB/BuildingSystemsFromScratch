@@ -1,13 +1,13 @@
 // Byimaan
 
 import * as net from "net";
-import { HttpHeader, valueOf } from "../types";
-import { spacer } from "../utils";
+import { HttpHeader } from "../types";
+import { isString, spacer } from "../utils";
 
 export class HttpResponse {
     private _socket : net.Socket
     private header : HttpHeader = {};
-    private body: string = '';
+    private body: string | Uint8Array = '';
 
     private statusLine = {
         code: 500,
@@ -28,7 +28,10 @@ export class HttpResponse {
             entity => entity.join(": ")
         ).join(spacer()) + spacer(2);
 
-        const bodySection = this.body && (this.body + spacer(2));
+        const bodySection = (
+            this.body.length && isString(this.body)
+        ) ? (this.body + spacer(2)) : '';
+
         return `${statusLine}${headerSection}${bodySection}`
     };
 
@@ -61,9 +64,18 @@ export class HttpResponse {
         return this
     };
 
-    end(body?:string){
-        if (body) this.body = body;
-        this._socket.end(this.formatResponse())
+    end(body: string | Buffer = ''){
+        
+        this.body = body instanceof Buffer ? (
+            Uint8Array.from(body)
+        ) : body;
+
+        this._socket.write(this.formatResponse());
+        if (this.body instanceof Uint8Array){
+            this._socket.write(this.body)
+        };
+
+        this._socket.end()
     };
 
     get socket(){
