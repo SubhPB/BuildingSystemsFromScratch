@@ -9,3 +9,6 @@ name = "pypi"
 
 [requires]
 python_version = "3.12"
+
+[scripts]
+start = "python app/main.py"
