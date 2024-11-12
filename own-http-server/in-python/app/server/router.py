@@ -34,8 +34,8 @@ class Router:
             )
 
             self._route_table[method][regex.pattern] = {
-                "regex": regex,
-                "handler": handlerFn
+                "route_regex": regex,
+                "route_handler": handlerFn
             }
 
     def get(self, path, handler):

@@ -1,7 +1,5 @@
 # Byimaan
 
-# Byimaan
-
 import socket
 
 class Server:
