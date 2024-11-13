@@ -29,7 +29,7 @@ class Router:
         if isinstance(self._route_table[method], dict):
             regex = re.compile(
                 "^" # start-of-the-pattern
-                + path.replace("*", ".*") # so regex consider * as wildcard
+                + path.replace("*", ".*") # so zero or more preceding characters.
                 + "$" # end-of-the-pattern
             )
 
@@ -37,6 +37,10 @@ class Router:
                 "route_regex": regex,
                 "route_handler": handlerFn
             }
+
+    @property
+    def route_table(self):
+        return self._route_table
 
     def get(self, path, handler):
         self.__set_route("GET", path, handler)

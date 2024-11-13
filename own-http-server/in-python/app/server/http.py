@@ -1,6 +1,7 @@
 # Byimaan
 
 import socket
+from router import Router
 
 class Server:
     def __init__(self, host: str, port: int) -> None:
@@ -11,6 +12,11 @@ class Server:
             socket.SOCK_STREAM # Socket type should be stream which is typical for TCP connections
         )
         self.server_is_running = False
+        self._router = None
+    
+    def config_router(self, router: Router):
+        self._router = router
+        return self
         
     def start(self):
         self._server_socket.bind(
@@ -23,6 +29,10 @@ class Server:
 
         try:
             while self.server_is_running:
+
+                if not isinstance(self.router, Router):
+                    raise ValueError(f"[Error] router expected to be type of Router. But found {type(self.router)} ")
+
                 client_socket, client_address = self._server_socket.accept()
                 print(f"[INFO:Connection-Received] A connection has been received from {client_address}")
                 client_socket.sendall(b"HTTP/1.1 200 OK\r\n\r\n")
