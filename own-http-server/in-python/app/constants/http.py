@@ -1,4 +1,6 @@
 
+DEFAULT_CRLF = "\r\n"
+
 HTTP_METHODS = [
     "GET",           # Retrieve data from the server
     "POST",          # Send data to the server to create a resource
