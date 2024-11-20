@@ -1,7 +1,12 @@
 # Byimaan
 
 import socket
-from router import Router
+import re
+from app.server.router import Router
+from app.server.request.index import Request
+from app.server.response.index import Response
+from app.utils.fn import find
+from app.utils.custom_errors import HttpPathDoesNotExist
 
 class Server:
     def __init__(self, host: str, port: int) -> None:
@@ -30,19 +35,40 @@ class Server:
         try:
             while self.server_is_running:
 
-                if not isinstance(self.router, Router):
-                    raise ValueError(f"[Error] router expected to be type of Router. But found {type(self.router)} ")
-
                 client_socket, client_address = self._server_socket.accept()
-                print(f"[INFO:Connection-Received] A connection has been received from {client_address}")
-                client_socket.sendall(b"HTTP/1.1 200 OK\r\n\r\n")
-                # handler = None
-                # # Init thread and start
-                pass
+               
+                request, response = Request(client_socket), Response(client_socket)
+
+                try:
+                    print(f"[{request.request_line}] request received from {client_address}")
+                    req_method, req_path = request.method, request.path
+                    print(f'method = {req_method}, path={req_path}')
+                    route_table = None if not self._router else self._router.route_table
+                    print(f"route table = {route_table}")
+                    if route_table and req_method in route_table:
+                        def verify_handler(route):
+                            route_regex = route["route_regex"], route["route_handler"]
+                            return re.match(route_regex, req_path)
+
+                        route = find(route_table.values(), verify_handler)
+
+                        if route:
+                            route["route_handler"](request, response)
+                        else:
+                            raise HttpPathDoesNotExist("Not found")
+
+                    else:
+                        raise HttpPathDoesNotExist("Not found")
+                    
+                except HttpPathDoesNotExist:
+                    response.set_status(404).end(f"[Path: {req_path}] given path not found")
+                except Exception as e:
+                    response.set_status(500).end(e)
+
         except KeyboardInterrupt:
             print(f"[Error] Shutting down server due to key interruption")
         except Exception as e:
-            print(f"[Error:Exception] {e.__cause__} \r\n Shutting down server...")
+            print(f"[Error:Exception] {e} \r\n Shutting down server...")
         finally:
             self.stop()
 

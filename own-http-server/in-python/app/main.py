@@ -1,6 +1,6 @@
 # Byimaan
 
-from server.http import Server
+from app.server.http import Server
 
 HOST_NAME, PORT = "localhost", 4221
 
