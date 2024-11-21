@@ -95,3 +95,38 @@ HTTP_STATUS = {
     511: "Network Authentication Required"
 }
 
+
+CONTENT_TYPE_MAP = {
+    "text": {
+        "plain": "text/plain; charset=utf-8",
+        "html": "text/html; charset=utf-8",
+        "css": "text/css; charset=utf-8",
+        "javascript": "application/javascript; charset=utf-8",
+        "csv": "text/csv; charset=utf-8",
+    },
+    "application": {
+        "json": "application/json; charset=utf-8",
+        "xml": "application/xml; charset=utf-8",
+        "yaml": "application/x-yaml; charset=utf-8",
+        "pdf": "application/pdf",
+        "octet-stream": "application/octet-stream",
+    },
+    "image": {
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "gif": "image/gif",
+        "bmp": "image/bmp",
+        "svg+xml": "image/svg+xml",
+    },
+    "audio": {
+        "mpeg": "audio/mpeg",
+        "wav": "audio/wav",
+        "ogg": "audio/ogg",
+    },
+    "video": {
+        "mp4": "video/mp4",
+        "mpeg": "video/mpeg",
+        "quicktime": "video/quicktime",
+    },
+}
+
