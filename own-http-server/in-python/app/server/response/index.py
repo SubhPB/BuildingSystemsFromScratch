@@ -15,28 +15,41 @@ class Response:
         self.body = ""
 
     def __parse_response(self):
-        response_line_data = " ".join([f"{value}" for value in self.__response_line.values()]) + spacer(1)
+        response = []
+
+        response_line_data = " ".join(
+            [f"{value}" for value in self.__response_line.values()]
+        )
+        response.append(response_line_data)
 
         response_headers_data = ""
-        for key, value in self.headers:
+        for key, value in self.headers.items():
             if isinstance(value, list):
-                value = ", ".join(value)
+                value = ", ".join([f"{val}".strip() for val in value])
             response_headers_data += (
                 f"{key}: {value}" + spacer(1)
             )
+        response.append(response_headers_data)
 
-        response_body_data = self.body + spacer(1)
+        response_body_data = self.body 
+        response.append(response_body_data)
 
-        response = spacer(1).join([
-            response_line_data, response_headers_data, response_body_data
-        ]) + spacer(1)
+        http_response = spacer(1).join(response)
 
-        return response.encode("utf-8") # in buffer format
+        if isinstance(self.body, str):
+            return http_response.encode("utf-8")
+        else:
+            return http_response 
 
     def set_header(self, header_key, *header_value):
-        if len(header_value) == 1:
-            # Our goal was to allow apply apply multiple header values with or without passing list as argument e.g set_header(key, val1, val2, val3)
-            header_value = header_value[0] if not isinstance(header_value, list) else header_value[0][0]
+        header_value = list(header_value)
+
+        if len(header_value) == 0:
+            raise ValueError(f"[Error] Header: {header_key} is assigned with no value")
+
+        # Our goal was to allow apply apply multiple header values with or without passing list as argument e.g set_header(key, val1, val2, val3)
+        header_value = header_value[0] if not isinstance(header_value[0], list) else header_value[0][0]
+
         self.headers[header_key] = header_value
         return self
     
@@ -61,14 +74,17 @@ class Response:
     def end(self, body=None):
         if body:
             self.body = body
-        try:
-            response = self.__parse_response()
-            print("Parsed response = ", response)
-        except Exception as e:
-            print("Error occurred while parsing response")
-            print(e)
-            raise e
-        self.__client_socket.sendall(
-            self.__parse_response()
-        )
+
+        # Automating setting the Content-Type 
+        if isinstance(self.body, str) and not self.headers.get('Content-Length', None):
+                data = len(self.body.encode('utf-8'))
+                print("data = ", data)
+                self.set_header(
+                    'Content-Length', 
+                    len(self.body.encode('utf-8'))
+                )
+        http_response = self.__parse_response()
+        print(http_response)
+
+        self.__client_socket.sendall(http_response)
         self.__client_socket.close()

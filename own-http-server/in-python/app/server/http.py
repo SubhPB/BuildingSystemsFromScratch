@@ -42,9 +42,9 @@ class Server:
                 try:
                     print(f"[{request.request_line}] request received from {client_address}")
                     req_method, req_path = request.method, request.path
-                    print(f'method = {req_method}, path={req_path}')
+
                     route_table = None if not self._router else self._router.route_table
-                    print(f"route table = {route_table}")
+                    
                     if route_table and req_method in route_table:
                         def verify_handler(route):
                             route_regex = route["route_regex"], route["route_handler"]
