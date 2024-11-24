@@ -50,7 +50,7 @@ class Server:
                             route_regex = route["route_regex"], route["route_handler"]
                             return re.match(route_regex, req_path)
 
-                        route = find(route_table.values(), verify_handler)
+                        route = find(route_table[req_method].values(), verify_handler)
 
                         if route:
                             route["route_handler"](request, response)
