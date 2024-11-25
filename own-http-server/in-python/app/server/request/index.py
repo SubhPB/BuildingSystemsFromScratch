@@ -4,7 +4,7 @@ import socket
 from app.utils.fn import spacer
 
 class Request:
-    def __init__(self, client_socket: socket.socket,):
+    def __init__(self, client_socket: socket.socket,query_params={}, search_params={}):
 
         self.request_data = client_socket.recv(1024).decode('utf-8')
 
@@ -20,7 +20,8 @@ class Request:
             self.version
         ] = self.request_line.split(" ")
 
-        self.search_params = self.__compute_search_params()
+        self.query_params = query_params
+        self.search_params = self.search_params
 
         # header and body section
         [
@@ -37,23 +38,4 @@ class Request:
             ) for key, value in header_list 
         }
 
-    def __compute_search_params(self):
-        search_params = {}
-        
-        if '?' in self.path:
-            search_params_data = self.path.split("?")[1].split("&")
-
-            search_params_list = [ search_param.split("=") for search_param in search_params_data ]
-            
-            for key, value in search_params_list:
-                if key in search_params:
-                    if not isinstance(search_params[key], list):
-                        search_params[key] = [
-                            search_params[key]
-                        ]
-                    search_params[key].append(value)
-                else:
-                    search_params[key] = value
-
-        return search_params
     
