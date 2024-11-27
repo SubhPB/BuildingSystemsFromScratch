@@ -29,3 +29,23 @@ def is_dir(dir_path:str):
     return does_path_exist(dir_path) and os.path.isdir(dir_path)
 
 
+
+def retrieve_dir_children(valid_dir_path: str, depth=1):
+    
+    record = {
+        "files": [],
+        "dirs": {}
+    }
+    
+    if depth >= 0:
+        for item in os.listdir(valid_dir_path):
+            item_path = os.path.join(valid_dir_path, item)
+            if is_file(item_path):
+                record["files"].append(item_path)
+            elif is_dir(item_path):
+                record["dirs"][f"{item_path}"] = retrieve_dir_children(
+                    item_path,
+                    depth - 1
+                )
+            
+    return record
