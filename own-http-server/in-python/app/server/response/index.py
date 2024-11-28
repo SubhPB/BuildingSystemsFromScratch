@@ -15,12 +15,10 @@ class Response:
         self.body = ""
 
     def __parse_response(self):
-        response = []
 
         response_line_data = " ".join(
             [f"{value}" for value in self.__response_line.values()]
         )
-        response.append(response_line_data)
 
         response_headers_data = ""
         for key, value in self.headers.items():
@@ -29,17 +27,20 @@ class Response:
             response_headers_data += (
                 f"{key}: {value}" + spacer(1)
             )
-        response.append(response_headers_data)
-
         response_body_data = self.body 
-        response.append(response_body_data)
 
-        http_response = spacer(1).join(response)
+        bCRLF = spacer(1).encode("utf-8")
 
-        if isinstance(self.body, str):
-            return http_response.encode("utf-8")
-        else:
-            return http_response 
+        # Assemble response
+        http_response = response_line_data.encode(
+            "utf-8"
+            ) + bCRLF + response_headers_data.encode(
+                "utf-8"
+                ) + bCRLF + (
+                    response_body_data if isinstance(response_body_data, bytes) else response_body_data.encode("utf-8")
+                )
+
+        return http_response 
 
     def set_header(self, header_key, *header_value):
         header_value = list(header_value)
