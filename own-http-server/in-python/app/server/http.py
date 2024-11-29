@@ -2,6 +2,7 @@
 
 import socket
 import re
+import threading
 from app.server.router import Router
 from app.server.request.index import Request
 from app.server.response.index import Response
@@ -36,34 +37,10 @@ class Server:
             while self.server_is_running:
 
                 client_socket, client_address = self._server_socket.accept()
-               
-                request, response = Request(client_socket), Response(client_socket)
-
-                try:
-                    print(f"[{request.request_line}] request received from {client_address}")
-                    req_method, req_path = request.method, request.path
-
-                    route_table = None if not self._router else self._router.route_table
-                    
-                    if route_table and req_method in route_table:
-                        def verify_handler(route):
-                            route_regex = route["route_regex"], route["route_handler"]
-                            return re.match(route_regex, req_path)
-
-                        route = find(route_table[req_method].values(), verify_handler)
-
-                        if route:
-                            route["route_handler"](request, response)
-                        else:
-                            raise HttpPathDoesNotExist("Not found")
-
-                    else:
-                        raise HttpPathDoesNotExist("Not found")
-                    
-                except HttpPathDoesNotExist:
-                    response.set_status(404).end(f"[Path: {req_path}] given path not found")
-                except Exception as e:
-                    response.set_status(500).end(e)
+                threading.Thread(
+                    target=self.manage_connections,
+                    args=(client_socket, client_address)
+                ).start()
 
         except KeyboardInterrupt:
             print(f"[Error] Shutting down server due to key interruption")
@@ -76,3 +53,36 @@ class Server:
         self.server_is_running = False
         self._server_socket.close()
         print(f"\r\n [INFO:Stop] Server has stopped listening on {self._host}:{self._port} \r\n")
+
+    
+    def manage_connections(self, client_socket, client_address):
+        request, response = Request(client_socket), Response(client_socket)
+        try:
+            print(f"[{request.request_line}] request received from {client_address}")
+            req_method, req_path = request.method, request.path
+
+            route_table = None if not self._router else self._router.route_table
+            
+            if route_table and req_method in route_table:
+                def verify_handler(route):
+                    route_regex = route["route_regex"]
+                    return re.match(route_regex, req_path if "?" not in req_path else req_path.split("?")[0])
+                route = None
+
+                route = find(
+                    list(route_table[req_method].values()),
+                    verify_handler
+                )
+                    
+                if route:
+                    route["route_handler"](request, response)
+                else:
+                    raise HttpPathDoesNotExist("Not found")
+
+            else:
+                raise HttpPathDoesNotExist("Not found")
+            
+        except HttpPathDoesNotExist:
+            response.set_status(404).end(f"[Path: {req_path}] given path not found")
+        except Exception as e:
+            response.set_status(500).end(e)
